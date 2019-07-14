@@ -14,4 +14,4 @@ Für andere Flags siehe [hier](https://github.com/RundesBalli/pr0gramm-comment2t
 
 ## Ausgabe
 Das Script legt im Arbeitsverzeichnis eine `.txt` Datei an:  
-`comments_{USERNAME}_{dmY_His}.txt`
+`comments_{USERNAME}_f{FLAGS}_{dmY_His}.txt`

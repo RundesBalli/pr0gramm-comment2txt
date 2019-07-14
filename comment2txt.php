@@ -130,7 +130,7 @@ echo "Crawling beendet. (".date("d.m.Y, H:i:s").")\n";
 /**
  * Output in Datei übernehmen.
  */
-$fp = fopen(__DIR__.DIRECTORY_SEPARATOR."comments_".$username."_".date("Ymd_His").".txt", "w");
+$fp = fopen(__DIR__.DIRECTORY_SEPARATOR."comments_".$username."_f".$flags."_".date("Ymd_His").".txt", "w");
 fwrite($fp, $output);
 fclose($fp);
 ?>
