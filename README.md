@@ -8,7 +8,7 @@ Der apiCall wird in [Zeile 15](https://github.com/RundesBalli/pr0gramm-comment2t
 ## Nutzung
 Es handelt sich hierbei um ein CLI Script, d.h. es wird im Terminal ausgeführt.  
 Beispielaufruf:  
-`php ./exportComments.php RundesBalli 15`  
+`php ./comment2text.php RundesBalli 15`  
 Der User `RundesBalli` wird mit Flags `15` (all) gecrawlt.  
 Für andere Flags siehe [hier](https://github.com/RundesBalli/pr0gramm-comment2txt/blob/master/comment2txt.php#L88).
 
