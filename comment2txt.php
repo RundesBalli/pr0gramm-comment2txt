@@ -2,24 +2,20 @@
 /**
  * pr0gramm comment2txt
  * 
+ * CLI-Tool to export all comments of a specified user on the German imageboard pr0gramm.com.
+ * 
  * @author    RundesBalli <rundesballi@rundesballi.com>
- * @copyright 2019 RundesBalli
- * @version   1.0.0 - 14. JUN 2019
+ * @copyright 2025 RundesBalli
+ * @version   1.1.0
  * @see       https://github.com/RundesBalli/pr0gramm-comment2txt
  * @license   MIT-License
  */
 
 /**
- * Einbinden des API-Calls.
+ * Including the apiCall
+ * @see https://github.com/RundesBalli/pr0gramm-apiCall
  */
 require_once('/path/to/apiCall.php');
-
-/**
- * Ausführliche Ausgabe
- * 
- * @var bool
- */
-$verbose = TRUE;
 
 /**
  * Function to validate usernames from pr0gramm.com
@@ -29,90 +25,99 @@ $verbose = TRUE;
  * 
  * @return string/boolean On success the validated username will be returned, if not FALSE.
  */
-function validUsername($username) {
+function validUsername(string $username) {
   $regex = '/^[a-zA-Z0-9-_]{2,32}$/';
   return (preg_match($regex, trim($username), $matches) === 1) ? $matches[0] : FALSE;
 }
 
 /**
- * Function to validate flags from pr0gramm.com
- * @see https://github.com/RundesBalli/regex-functions/blob/master/pr0gramm/validFlag.php
- * 
- * @param int The flag to be checked.
- * 
- * @return string/boolean On success the validated flag will be returned, if not FALSE.
- */
-function validFlag($flag) {
-  $regex = '/^([1-9]|1[0-5])$/';
-  return (preg_match($regex, trim($flag), $matches) === 1) ? $matches[0] : FALSE;
-}
-
-/**
- * Initialisieren des Output
+ * Initialize the output.
  */
 $output = '';
-$comments = array();
+$comments = [];
 
 /**
- * Username aus den Script-Argumenten validieren.
+ * Validate username from arguments.
  */
-if(isset($argv[1]) AND !empty($argv[1])) {
-  $username = validUsername($argv[1]);
-  if($username === FALSE) {
-    die('Bitte gültigen Username angeben [a-zA-Z0-9-_]{2,32}'."\n");
-  }
-} else {
-  die('Bitte Usernamen angeben.'."\n");
+if(!isset($argv[1]) OR empty($argv[1])) {
+  die('You have to enter a valid username.'."\n");
+}
+
+$username = validUsername($argv[1]);
+if($username === FALSE) {
+  die('You have to enter a valid username.'."\n");
+}
+
+$response = apiCall('https://pr0gramm.com/api/profile/info/?name='.$username);
+if(!empty($response['code']) AND $response['code'] == 404) {
+  die('The username you\'ve entered is not existent on pr0gramm.com.'."\n");
 }
 
 /**
- * Flags aus den Script-Argumenten validieren.
+ * Validate flags from arguments.
  */
-if(isset($argv[2]) AND !empty($argv[2])) {
-  $flags = validFlag($argv[2]);
-  if($flags === FALSE) {
-    die('Bitte gültige Flags eingeben.'."\n".'Beispiel: 31 (all)'."\n");
-  }
-} else {
-  die('Bitte Flags eingeben.'."\n");
+if(!isset($argv[2]) OR empty($argv[2])) {
+  die('You have to enter a valid flag (31 for "all").'."\n");
+}
+
+$flags = intval($argv[2]);
+if($flags == 0 OR $flags < 1 OR $flags > 31) {
+  die('You have to enter a valid flag (31 for "all").'."\n");
 }
 
 /**
- * Vorbereiten des Output
+ * Flags and flag names.
+ */
+$flagNames = [
+  1  => 'SFW',
+  2  => 'NSFW',
+  4  => 'NSFL',
+  8  => 'NSFP',
+  16 => 'POL',
+];
+$flagsBin = strrev(str_pad(decbin($flags), 5, 0, STR_PAD_LEFT));
+$flagArray = [];
+if($flagsBin[0]) { $flagArray[] = $flagNames[1]; }
+if($flagsBin[1]) { $flagArray[] = $flagNames[2]; }
+if($flagsBin[2]) { $flagArray[] = $flagNames[4]; }
+if($flagsBin[3]) { $flagArray[] = $flagNames[8]; }
+if($flagsBin[4]) { $flagArray[] = $flagNames[16]; }
+
+/**
+ * Heading and informations
  */
 $output.= '==================================================='."\n";
 $output.= '        RundesBalli\'s pr0gramm-comment2txt         '."\n";
 $output.= 'https://github.com/RundesBalli/pr0gramm-comment2txt'."\n";
 $output.= '==================================================='."\n";
-$output.= ($verbose === TRUE) ? 'Crawle '.$username.' (https://pr0gramm.com/user/'.$username.')'."\n" : 'Crawle '.$username."\n";
-$flagarray = array(1 => "SFW", 2 => "NSFW", 3 => "SFW+NSFW", 4 => "NSFL", 5 => "SFW+NSFL", 6 => "NSFW+NSFL", 7 => "SFW+NSFW+NSFL", 8 => "NSFP", 9 => "SFW+NSFP", 10 => "NSFW+NSFP", 11 => "SFW+NSFW+NSFP", 12 => "NSFL+NSFP", 13 => "SFW+NSFL+NSFP", 14 => "NSFW+NSFL+NSFP", 15 => "ALL");
-$output.= ($verbose === TRUE) ? 'Flags: '.$flags.' ('.$flagarray[$flags].')'."\n" : 'Flags: '.$flags.''."\n";
+$output.= 'Crawl '.$username.' (https://pr0gramm.com/user/'.$username.')'."\n";
+$output.= 'Flags: '.$flags.' ('.implode('+', $flagArray).')'."\n";
 $output.= '==================================================='."\n";
-$output.= 'Starte Crawling... ('.date('d.m.Y, H:i:s').')'."\n";
-$output.= '==================================================='."\n";
+$output.= 'Started crawling at '.date('d.m.Y, H:i:s')."\n";
+$output.= '==================================================='."\n\n";
 echo $output;
 
 /**
- * Initialisieren der Suchparameter für die erste comment-API-Abfrage.
+ * Initialise the search parameters for the first API query.
  */
 $before = 9999999999;
 $hasOlder = TRUE;
 
 /**
- * Crawlen...
+ * Crawl...
  */
 do {
   $response = apiCall('https://pr0gramm.com/api/profile/comments?name='.$username.'&flags='.$flags.'&before='.$before);
-  echo ($verbose === TRUE) ? 'apiCall: "https://pr0gramm.com/api/profile/comments?name='.$username.'&flags='.$flags.'&before='.$before.'"\n' : NULL;
+  echo 'apiCall: "https://pr0gramm.com/api/profile/comments?name='.$username.'&flags='.$flags.'&before='.$before."\n";
   if($response['hasOlder'] === FALSE) {
     $hasOlder = FALSE;
   }
   foreach($response['comments'] AS $key => $content) {
-    $commentoutput = 'https://pr0gramm.com/new/'.$content['itemId'].':comment'.$content['id']."\n";
-    $commentoutput.= date('d.m.Y, H:i:s', $content['created']).' Uhr / '.($content['up']-$content['down']).' Score'."\n";
-    $commentoutput.= '---------------------------------------------------'."\n";
-    $commentoutput.= $content['content']."\n";
-    $comments[] = $commentoutput;
+    $commentOutput = 'https://pr0gramm.com/new/'.$content['itemId'].':comment'.$content['id']."\n";
+    $commentOutput.= date('d.m.Y, H:i:s', $content['created']).' / '.($content['up']-$content['down']).' Score'."\n";
+    $commentOutput.= '---------------------------------------------------'."\n";
+    $commentOutput.= $content['content']."\n";
+    $comments[] = $commentOutput;
     if($content['created'] < $before) {
       $before = $content['created'];
     }
@@ -120,17 +125,17 @@ do {
 } while($hasOlder == TRUE);
 
 /**
- * Kommentare für Output vorbereiten und übernehmen.
+ * Prepare comments for output.
  */
-$output.= implode('==================================================='."\n", $comments);
-$output.= '==================================================='."\n";
-$output.= 'Crawling beendet. ('.date('d.m.Y, H:i:s').')'."\n";
-echo 'Crawling beendet. ('.date('d.m.Y, H:i:s').')'."\n";
+$output.= implode("\n".'==================================================='."\n\n", $comments);
+$output.= "\n".'==================================================='."\n\n";
+$output.= 'Finished crawling at '.date('d.m.Y, H:i:s')."\n";
+echo "\n".'Done. ('.date('d.m.Y, H:i:s').')'."\n";
 
 /**
- * Output in Datei übernehmen.
+ * Put output to file.
  */
 $fp = fopen(__DIR__.DIRECTORY_SEPARATOR.'comments_'.$username.'_f'.$flags.'_'.date('Ymd_His').'.txt', 'w');
-fwrite($fp, $output);
+fwrite($fp, str_replace("\r", '', $output));
 fclose($fp);
 ?>
