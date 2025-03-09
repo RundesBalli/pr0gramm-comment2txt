@@ -71,7 +71,7 @@ if(isset($argv[1]) AND !empty($argv[1])) {
 if(isset($argv[2]) AND !empty($argv[2])) {
   $flags = validFlag($argv[2]);
   if($flags === FALSE) {
-    die('Bitte gültige Flags eingeben.'."\n".'Beispiel: 15 (all)'."\n");
+    die('Bitte gültige Flags eingeben.'."\n".'Beispiel: 31 (all)'."\n");
   }
 } else {
   die('Bitte Flags eingeben.'."\n");
