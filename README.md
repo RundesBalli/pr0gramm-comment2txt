@@ -1,17 +1,30 @@
 # pr0gramm-comment2txt
-CLI-Script zum Exportieren aller Kommentare eines Users.
+CLI-Tool to export all comments of a specified user on the German imageboard pr0gramm.com.
 
-## Abhängigkeiten
-Damit der Bot funktioniert muss der [pr0gramm-apiCall](https://github.com/RundesBalli/pr0gramm-apiCall) eingebunden werden.  
-Der apiCall wird in [Zeile 15](https://github.com/RundesBalli/pr0gramm-comment2txt/blob/master/comment2txt.php#L15) eingebunden (Pfad muss angepasst werden!)
+## Dependencies
+- [pr0gramm-apiCall](https://github.com/RundesBalli/pr0gramm-apiCall)  
+You have to modify the apiCall path in the script!
 
-## Nutzung
-Es handelt sich hierbei um ein CLI Script, d.h. es wird im Terminal ausgeführt.  
-Beispielaufruf:  
-`php ./comment2text.php RundesBalli 15`  
-Der User `RundesBalli` wird mit Flags `15` (all) gecrawlt.  
-Für andere Flags siehe [hier](https://github.com/RundesBalli/pr0gramm-comment2txt/blob/master/comment2txt.php#L88).
+## Using the script
+This is a CLI script, therefore it has to be executed in the terminal and not in the browser.  
+Example call:  
+```bash
+php ./comment2text.php RundesBalli 29
+```
+The user `RundesBalli` will be crawled with flags `29` (SFW+NSFL+NSFP+POL).  
+Flags:  
+```php
+$flagNames = [
+  1  => 'SFW',
+  2  => 'NSFW',
+  4  => 'NSFL',
+  8  => 'NSFP',
+  16 => 'POL',
+];
+```
 
-## Ausgabe
-Das Script legt im Arbeitsverzeichnis eine `.txt` Datei an:  
-`comments_{USERNAME}_f{FLAGS}_{dmY_His}.txt`
+## Output
+The script creates a `.txt` file in the working directory:  
+```
+comments_{USERNAME}_f{FLAGS}_{Ymd_His}.txt
+```
